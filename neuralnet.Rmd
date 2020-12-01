@@ -7,7 +7,16 @@ tags: R neuralnet
 toc: true  
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+# 메모리 정리
 
+# 필요 lib 읽어 오기
+
+# 데이터 읽어 오기
+
+# EDA
+
+# 데이터 전처리
+
+# 모델링
+
+# 성과분석
