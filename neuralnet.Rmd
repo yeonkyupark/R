@@ -1,6 +1,10 @@
 ---
-title: "neuralnet"
-output: html_document
+title: "dplyr package"
+date: 2020-12-01 
+last_modified_at: 2020-12-01
+categories: R
+tags: R neuralnet
+toc: true  
 ---
 
 ```{r setup, include=FALSE}
