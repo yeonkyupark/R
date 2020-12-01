@@ -1,0 +1,147 @@
+---
+title: "dplyr package"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+# dplyr
+
+`dplyr` 패키지는 데이터프레임을 빠르고 싶게 다룰 수 있는 함수를 제공한다. 조건에 따라 행을 추출할 수도 있고 특정 열을 선별할 수도 있으며 데이터를 그룹으로 나누어 통계자료를 계산할 수도 있다.
+
+함수|대상|내용|기본함수
+-|-|-|-
+filter()|행|조건에 맞는 행 추출|subset()
+arrange()|행|정렬|sort()
+select()|열|열 추출|데이터[,조건식]
+mutate()|열|열 추가|transform()
+summarise()|행|집계|aggregate()
+
+`%>%` 연산을 통해 함수들을 연결하여 코드를 보다 간결하고 쉽게 작성할 수 있다. 즉, *x %>% f(y)*는 *f(x,y)*와 같은 코드가 된다. 
+
+자세한 내용은 [https://cran.r-project.org/web/packages/dplyr/index.html] 페이지를 참고한다.
+
+```{r}
+#install.packages("dplyr")
+library(dplyr)
+```
+
+
+## filter
+`filter`는 함수 내 조건식을 만족하는 행을 추출한다.
+```{r}
+iris %>% filter(Species == "setosa", Sepal.Length > 5.5)
+```
+붓꽃의 종이 *setosa*이고 꽃받침의 길이가 5.5 이상인 행만 추출하는 코드이다. 내장함수를 이용하면 다음과 같다.
+
+```{r}
+subset(iris, Species == "setosa" & Sepal.Length > 5.5)
+```
+
+참고로, 좀 더 간단하게는 데이터프레임에 바로 조건식을 줄 수도 있다.
+```{r}
+iris[iris$Species == "setosa" & iris$Sepal.Length > 5.5, ]
+```
+
+
+## arrange
+`arrange`는 선택/추출된 행을 정렬한다.
+
+```{r}
+iris %>% arrange(Sepal.Length) %>% slice(1:5)
+```
+내림차순(역순)으로 정렬할 경우엔 *desc()*를 사용한다.
+
+```{r}
+iris %>% arrange(desc(Sepal.Length)) %>% slice(1:5)
+```
+
+## select
+`select`는 지정한 컬럼을 선택하는 기능을 한다. 컬럼 지정에는 컬럼 이름을 명시적으로 나타낼 수 있고 `:` 연산자를 통해 범위를 지정할 수도 있다. 또한 *starts_with()*, *ends_with()*, *matches()*, *contains()* 함수를 통해 조건을 지정할 수도 있다. `!` 연사자를 이용해 해당 컬럼을 뺄 수도 있다.
+
+```{r}
+iris %>% select(Sepal.Length, Species) %>% slice(1:5)
+```
+```{r}
+iris %>% select(!c(Sepal.Length, Species)) %>% slice(1:5)
+```
+
+```{r}
+iris %>% select(starts_with("Sepal")) %>% slice(1:5)
+```
+```{r}
+iris %>% select(contains(c("Length", "Species"))) %>% slice(1:5)
+```
+```{r}
+iris %>% select(Sepal.Length:Petal.Width) %>% slice(1:5)
+```
+
+## mutate
+`mutate`는 새로운 컬럼을 만들 때 사용할 수 있다.
+
+```{r}
+iris %>% mutate(Sepal.Length_10 = Sepal.Length * 10) %>% slice(1:5)
+```
+```{r}
+iris %>% mutate(Sepal.Length_F = ifelse(Sepal.Length>=5.0, "Big", "Normal")) %>% slice(1:5)
+```
+
+
+## summarise
+`summarise`는 통계자료를 추출할 때 사용할 수 있으며 *group_by()*와 주로 함께 사용한다.
+
+```{r}
+iris %>% 
+  group_by(Species) %>%
+  select(Sepal.Length, Petal.Length) %>%
+  summarise(
+    Sepal_Length = mean(Sepal.Length),
+    Petal_Length = mean(Petal.Length)
+  )
+```
+
+
+## 그외 함수들
+그외 유용한 함수들이다.
+
+### slice
+`slice`는 행을 주어진 범위로 추출한다.
+
+```{r}
+iris %>% slice(1:7)
+```
+이외에도 *Slice_head*, *slice_tail*, *slice_max*, *slice_min*, *slice_sample* 등이 있다. 
+
+```{r}
+iris %>% slice_sample(prop = 0.1) # 전체 데이터 중 10% 추출
+```
+
+
+### rename
+`rename`은 컬럼명을 변경한다.
+
+```{r}
+iris %>% rename(Category = Species) %>% slice_head(n=5)
+```
+
+*select()*를 통해 변경도 가능하지만 해당 컬럼만 남긴다는 특징이 있다.
+```{r}
+iris %>% select(Category = Species) %>% slice_head(n=5)
+```
+
+### relocate
+`relocate`는 특정 컬럼을 지정한 위치 앞으로 옮긴다.
+
+```{r}
+iris %>% relocate(Species, .before = Sepal.Length) %>% slice_max(Sepal.Length, n=5)
+```
+
+
+### EOD {.unnumbered}
