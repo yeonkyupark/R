@@ -1,22 +1,78 @@
 ---
-title: "dplyr package"
+title: "neuralnet"
 date: 2020-12-01 
-last_modified_at: 2020-12-01
+last_modified_at: 2020-12-02
 categories: R
 tags: R neuralnet
 toc: true  
 ---
 
 # 메모리 정리
+```{r}
+rm(list=ls())
+```
 
 # 필요 lib 읽어 오기
 
 # 데이터 읽어 오기
+```{r}
+data(iris)
+```
 
 # EDA
+```{r}
+str(iris)
+```
+```{r}
+summary(iris)
+```
+```{r}
+rbind(head(iris,3), tail(iris,3))
+```
+
+```{r}
+colSums(is.na(iris))
+```
 
 # 데이터 전처리
+```{r}
+# Species를 종별로 변수 생성 (one hot encoding)
+iris.nn <- cbind(iris, model.matrix(~ 0 + Species, iris))
+head(iris.nn, 3)
+```
+
+```{r}
+# 훈련/검정 데이터 분리
+idx <- sample(nrow(iris.nn), nrow(iris.nn)*0.75, replace = F)
+iris.train <- iris.nn[idx, ]
+iris.test <- iris.nn[-idx, ]
+```
 
 # 모델링
+```{r}
+install.packages("neuralnet")
+library(neuralnet)
+
+# formula
+model.formula <- as.formula(
+  paste(paste(colnames(iris.train[,c(6:8)]), collapse = "+"), "~", paste(colnames(iris.train[,c(1:4)]), collapse = "+"))
+)
+model.nn <- neuralnet(model.formula, data = iris.train, hidden = c(4), rep = 5, err.fct = "ce",
+                      linear.output = F, lifesign = "minimal", stepmax = 1000000, threshold = 0.001)
+```
+```{r}
+plot(model.nn, rep="best")
+```
 
 # 성과분석
+```{r}
+predict.nn <- compute(model.nn, iris.test[1:4])
+idx <- apply(predict.nn$net.result, MARGIN = 1, which.max)
+predicted <- c("setosa", "versicolor", "virginica")[idx]
+```
+
+```{r}
+library(caret)
+confusionMatrix(as.factor(predicted), iris.test$Species)
+```
+
