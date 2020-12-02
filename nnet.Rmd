@@ -74,9 +74,10 @@ confusionMatrix(as.factor(iris.pred), iris.test[, c(5)])
 ```
 # 시각화 & 인사이트
 ```{r}
-# library("devtools")
-# source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a505ff044412703516c34f1a4684a5/nnet_plot_update.r')
-# plot.nnet(iris.nn)
+library(reshape2)
+library("devtools")
+source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a505ff044412703516c34f1a4684a5/nnet_plot_update.r')
+plot.nnet(model.nn)
 ```
 # 성능 튜닝
 ```{r}

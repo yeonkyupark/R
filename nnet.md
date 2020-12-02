@@ -111,30 +111,31 @@ head(iris.train)
 ```
 
     ##     Sepal.Length Sepal.Width Petal.Length Petal.Width    Species setosa
-    ## 125          6.7         3.3          5.7         2.1  virginica      0
-    ## 140          6.9         3.1          5.4         2.1  virginica      0
-    ## 86           6.0         3.4          4.5         1.6 versicolor      0
-    ## 70           5.6         2.5          3.9         1.1 versicolor      0
-    ## 91           5.5         2.6          4.4         1.2 versicolor      0
-    ## 12           4.8         3.4          1.6         0.2     setosa      1
+    ## 150          5.9         3.0          5.1         1.8  virginica      0
+    ## 119          7.7         2.6          6.9         2.3  virginica      0
+    ## 112          6.4         2.7          5.3         1.9  virginica      0
+    ## 80           5.7         2.6          3.5         1.0 versicolor      0
+    ## 52           6.4         3.2          4.5         1.5 versicolor      0
+    ## 6            5.4         3.9          1.7         0.4     setosa      1
     ##     versicolor virginica
-    ## 125          0         1
-    ## 140          0         1
-    ## 86           1         0
-    ## 70           1         0
-    ## 91           1         0
-    ## 12           0         0
+    ## 150          0         1
+    ## 119          0         1
+    ## 112          0         1
+    ## 80           1         0
+    ## 52           1         0
+    ## 6            0         0
 
 ``` r
 model.nn <- nnet(x = iris.train[, c(1:4)], y = iris.train[, c(6:8)], size = 10, softmax = T)
 ```
 
     ## # weights:  83
-    ## initial  value 117.098554 
-    ## iter  10 value 45.207190
-    ## iter  20 value 45.053060
-    ## iter  30 value 45.046899
-    ## final  value 45.046870 
+    ## initial  value 142.395283 
+    ## iter  10 value 19.187459
+    ## iter  20 value 3.760419
+    ## iter  30 value 0.010806
+    ## iter  40 value 0.000704
+    ## final  value 0.000037 
     ## converged
 
 # 성능평가
@@ -149,42 +150,43 @@ confusionMatrix(as.factor(iris.pred), iris.test[, c(5)])
     ## 
     ##             Reference
     ## Prediction   setosa versicolor virginica
-    ##   setosa         10          0         0
-    ##   versicolor      0         17        18
-    ##   virginica       0          0         0
+    ##   setosa         14          0         0
+    ##   versicolor      0         11         3
+    ##   virginica       0          1        16
     ## 
     ## Overall Statistics
-    ##                                          
-    ##                Accuracy : 0.6            
-    ##                  95% CI : (0.4433, 0.743)
-    ##     No Information Rate : 0.4            
-    ##     P-Value [Acc > NIR] : 0.005281       
-    ##                                          
-    ##                   Kappa : 0.391          
-    ##                                          
-    ##  Mcnemar's Test P-Value : NA             
+    ##                                           
+    ##                Accuracy : 0.9111          
+    ##                  95% CI : (0.7878, 0.9752)
+    ##     No Information Rate : 0.4222          
+    ##     P-Value [Acc > NIR] : 7.909e-12       
+    ##                                           
+    ##                   Kappa : 0.8655          
+    ##                                           
+    ##  Mcnemar's Test P-Value : NA              
     ## 
     ## Statistics by Class:
     ## 
     ##                      Class: setosa Class: versicolor Class: virginica
-    ## Sensitivity                 1.0000            1.0000              0.0
-    ## Specificity                 1.0000            0.3571              1.0
-    ## Pos Pred Value              1.0000            0.4857              NaN
-    ## Neg Pred Value              1.0000            1.0000              0.6
-    ## Prevalence                  0.2222            0.3778              0.4
-    ## Detection Rate              0.2222            0.3778              0.0
-    ## Detection Prevalence        0.2222            0.7778              0.0
-    ## Balanced Accuracy           1.0000            0.6786              0.5
+    ## Sensitivity                 1.0000            0.9167           0.8421
+    ## Specificity                 1.0000            0.9091           0.9615
+    ## Pos Pred Value              1.0000            0.7857           0.9412
+    ## Neg Pred Value              1.0000            0.9677           0.8929
+    ## Prevalence                  0.3111            0.2667           0.4222
+    ## Detection Rate              0.3111            0.2444           0.3556
+    ## Detection Prevalence        0.3111            0.3111           0.3778
+    ## Balanced Accuracy           1.0000            0.9129           0.9018
 
 # 시각화 & 인사이트
 
 ``` r
-# library("devtools")
-# source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a505ff044412703516c34f1a4684a5/nnet_plot_update.r')
-# plot.nnet(iris.nn)
+library(reshape2)
+library("devtools")
+source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a505ff044412703516c34f1a4684a5/nnet_plot_update.r')
+plot.nnet(model.nn)
 ```
 
-# 성능 튜닝
+![](nnet_files/figure-gfm/unnamed-chunk-12-1.png)<!-- --> \# 성능 튜닝
 
 ``` r
 # hidden layer node 수에 따른 성능 확인
