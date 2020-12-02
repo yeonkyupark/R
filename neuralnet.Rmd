@@ -1,18 +1,16 @@
 ---
-title: "neuralnet"
-date: 2020-12-01 
-last_modified_at: 2020-12-02
-categories: R
-tags: R neuralnet
-toc: true  
+title: "Untitled"
+output: html_document
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 # 메모리 정리
 ```{r}
 rm(list=ls())
 ```
-
-# 필요 lib 읽어 오기
 
 # 데이터 읽어 오기
 ```{r}
@@ -50,7 +48,7 @@ iris.test <- iris.nn[-idx, ]
 
 # 모델링
 ```{r}
-install.packages("neuralnet")
+# install.packages("neuralnet")
 library(neuralnet)
 
 # formula
