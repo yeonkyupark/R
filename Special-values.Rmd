@@ -1,0 +1,151 @@
+---
+title: "Special Values - R"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+# 특이값 정의 - NA, Inf, NaN, NULL
+
+`NA`는 *Not Available*로 값이 누락된 경우(결측치)를 발생한다.
+
+`Inf`는 *Infinit*로 무한대를 의미한다(음의 무한대는 -Inf).
+
+`NaN`은 *Not a Number*로 수학적으로 정의되지 않는 수를 말한다.
+
+`NULL`는 *값이 없는 것*을 의미한다.
+
+```{r}
+# 3개의 변수에 각각의 특이값 입력
+a <- c(NA, 2, 3, 4) # NA
+b <- c(1, 1/0, -1/0, 0/0) # Inf, -Inf, NaN
+c <- c(1,2,NULL,4,1) # NULL
+```
+
+```{r}
+abc <- cbind(a,b,c)
+abc.df <- data.frame(a,b,c)
+```
+a의 경우, NA는 결측치 값이 있어야 하나 누락된 것을 의미한다.  
+b의 경우는 양의 무한대, 음의 무한대, 수학적으로 정의되지 않는 경우를 의미한다.  
+c의 경우, NULL은 값이 없음을 의미하여 C(1,2,4)와 같은 의미가 된다.  
+NA, NaN은 값이 있어야 하나 값이 없는 것이지만 NULL은 값 자체가 없다는 것을 의미한다.
+
+```{r}
+l <- length(c(NA))
+m <- length(c(NaN))
+n <- length(c(NULL))
+lmn <- cbind(l,m,n)
+lmn
+```
+# 특이값에 따른 데이터 계산
+```{r}
+# 각 변수별 평균값 계산
+mean(a)
+```
+
+```{r}
+mean(b)
+```
+
+```{r}
+mean(c)
+```
+NA, NaN, Inf, -Inf가 포함된 경우 통계분석이 불가하다.
+
+# 특이값 확인
+NA, NaN, Inf, NULL은 각각 `is.na()`, `is.nan()`, `is.infinite()`, `is.null()`를 통해 확인이 가능하다.
+
+```{r}
+# NA 확인, NA인 경우 TRUE를 반환
+is.na(abc)
+```
+abc 변수에서 확인 시, NaN도 is.na()를 통해 확인이 가능하다는 것을 알 수 있다.
+
+```{r}
+# NaN 확인
+is.nan(abc)
+```
+is.na()와는 달리 NaN만 TRUE를 반환한다.
+
+```{r}
+# Inf 확인
+is.infinite(abc)
+```
+양와 음의 무한대만 TRUE를 반환한다.
+
+```{r}
+# NULL 확인
+is.null(abc)
+```
+NULL은 값 자차가 없으므로 데이터 내에 존재할 수 없게 된다.  
+
+```{r}
+# NULL인 경우
+nul <- c()
+is.null(nul)
+```
+하지만 위와 같이 NULL이 되는 경우는 is.null()를 통해 확인이 가능하다.  
+
+데이터 셋에 변수가 많고 눈으로 직접 확인하기 힘들 경우 `summary()`나 `colSums()`를 이용할 할 수 있다.  
+
+```{r}
+summary(abc)
+```
+
+```{r}
+colSums(is.na(abc))
+```
+# 특이값 처리
+상황에 맞춰 다양한 방법을 통해 특이값을 처리할 수 있다.
+
+## na.rm = T
+통계분석 시 NA값을 제외한 데이터로 처리를 한다.
+```{r}
+mean(a)
+```
+
+```{r}
+mean(a, na.rm = T)
+```
+
+## na.omit()
+NA 값을 포함하는 행을 제거해 준다.
+```{r}
+abc
+```
+NA를 포함하는 행은 1,4행으로 na.omit()을 수행하면 2,3행만 남게 된다.
+```{r}
+abc_na.omit <- na.omit(abc)
+abc_na.omit
+```
+## complete.cases()
+na.omit()과 같은 결과를 만들 수 있지만, complete.cases()는 NA를 포함하지 않는 완전한 행 번호를 반환한다.  
+
+```{r}
+abc_comp.cases <- abc.df[complete.cases(abc.df),]
+abc_comp.cases
+```
+
+## 결측값 대체
+
+### 특정값으로 대체
+```{r}
+abc_new <- abc.df
+abc_new[is.na(abc_new)] <- 0
+abc_new
+```
+
+### 변수별 평균값으로 대체
+```{r}
+abc.ave <- abc.df
+sapply(abc.ave, function(x) ifelse(is.na(x), mean(x, na.rm = T), x))
+```
+
+
