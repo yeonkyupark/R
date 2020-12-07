@@ -1,0 +1,77 @@
+---
+title: "기술 통계 (Descriptive Staticstics)"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,	message = FALSE,	warning = FALSE
+)
+```
+
+# 기술 통계 (Descriptive Statistics)
+```{r}
+# 사용 데이터: R 내장 데이터셋
+data <- mtcars
+```
+
+```{r}
+# Structure
+str(data)
+```
+```{r}
+summary(data)
+```
+```{r}
+#Head of data
+head(data)
+```
+
+
+## Central Tendency
+```{r}
+# 평균(Mean)
+sapply(data, mean, na.rm=T)
+```
+```{r}
+# 중앙값(Median)
+sapply(data, median, na.rm=T)
+```
+```{r}
+# 최빈값(Mode)
+# 내장함수가 없어 table을 활용
+apply(data, 2, function(x) names(table(x))[table(x)==max(table(x))])
+```
+
+## Dispersion
+```{r}
+# Max
+sapply(data, max)
+```
+
+```{r}
+# min
+sapply(data, min)
+```
+
+```{r}
+# range
+sapply(data, range)
+```
+```{r}
+# Quantile
+apply(data, 2, function(x) quantile(x, probs = c(0.25, 0.5, 0.75)))
+```
+```{r}
+# Variance
+options("scipen" = 100)
+sapply(data,var)
+```
+```{r}
+# Standard Deviation
+sapply(data,sd)
+```
+
+
+---
+EOD
