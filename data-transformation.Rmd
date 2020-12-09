@@ -1,0 +1,166 @@
+---
+title: "데이터 변환"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,	message = FALSE,	warning = FALSE, options(width = 120)
+)
+```
+
+# Prerequisite
+```{r}
+rm(list=ls())
+# getwd()
+# setwd("./R") # if necessary
+```
+
+# 파생변수 생성
+```{r}
+data <- iris
+```
+
+```{r Structure}
+str(data)
+```
+
+```{r Summary}
+summary(data)
+```
+
+```{r Samples}
+data[sort(sample(1:nrow(data), 10)),]
+```
+
+## 데이터셋에 직접 추가
+```{r}
+# dataset$추가할변수 <- "추가할 내용"
+data$new1 <- data$Sepal.Length + data$Sepal.Width
+data[sort(sample(1:nrow(data), 10)),]
+```
+
+```{r}
+# dataset["추가할변수"] <-  "추가할 내용"
+data["new2"] <- data$Petal.Length + data$Petal.Width
+data[sort(sample(1:nrow(data), 10)),]
+```
+
+## cbind()
+```{r}
+# dataset <- cbind(dataset, 추가할변수 = "추가할 내용")
+data <- cbind(data, new3 = data$Sepal.Length + data$Petal.Length)
+data[sort(sample(1:nrow(data), 10)),]
+```
+
+
+## transform()
+```{r}
+# dataset <- transform(dataset, var1 = data1, var2 = data2, ...)
+data <- transform(data, new4 = data$Sepal.Width + data$Petal.Width)
+data[sort(sample(1:nrow(data), 10)),]
+```
+
+## within()
+```{r}
+# dataset <- within(dataset, expr)
+data <- within(data,
+               {
+                 new5 = ifelse(data$Sepal.Length>mean(data$Sepal.Length), "G", "L")
+               })
+data[sort(sample(1:nrow(data), 10)),]
+```
+
+
+# 변수 축소
+
+## 주성분 분석
+```{r}
+pc <- princomp(data[,c(1:4)])
+summary(pc)
+```
+
+```{r}
+# screePlot
+plot(pc, type = 'l')
+```
+
+```{r}
+pc$loadings
+```
+
+```{r}
+biplot(pc, scale=0, cex = 0.75, arrow.len = 0.1, expand=1)
+```
+
+## 요인 분석
+```{r}
+# 정규화
+data.min <- sapply(data[,c(1:4)],min)
+data.max <- sapply(data[,c(1:4)],max)
+data.scaled <- scale(data[,c(1:4)], center = data.min, scale = (data.max - data.min))
+fa <- factanal(data.scaled[,c(1:4)], factors = 1, scores="regression")
+fa
+```
+
+```{r}
+plot(fa$scores, col=data$Species)
+# text(fa$scores[,1], cex = 0.7, pos = 3, col = "blue")
+points(fa$loadings, pch=19, col="blue")
+text(fa$loadings[,1], labels = rownames(fa$loadings),
+     cex = 0.7, pos = 4, col = "blue")
+segments(0,0,1, fa$loadings[1,1], col="blue")
+segments(0,0,2, fa$loadings[2,1], col="blue")
+segments(0,0,3, fa$loadings[3,1], col="blue")
+segments(0,0,4, fa$loadings[4,1], col="blue")
+```
+
+
+# 표준화와 정규화
+
+## 표준화
+```{r}
+# 평균 기준 떨어진 정도
+SL <- data.frame(Sepal.Length = iris$Sepal.Length)
+SL$mean <- mean(SL$Sepal.Length)
+SL$sd <- sd(SL$Sepal.Length)
+
+# 직접계산: (원소값 - 평균)/표준편차
+SL$stndM <- (SL$Sepal.Length - SL$mean)/SL$sd 
+
+# scale() 사용
+SL$stndA <- scale(SL$Sepal.Length, center = T, scale = T) 
+SL[sort(sample(1:nrow(SL), 10)),]
+```
+
+
+## 정규화
+```{r}
+# 데이터의 범위를 0과 1 사이로 변환
+SW <- data.frame(Sepal.Width = iris$Sepal.Width)
+SW.min <- min(SW)
+SW$min <- SW.min
+SW.max <- max(SW)
+SW$max <- SW.max
+```
+
+
+```{r}
+# 직접계산: (원소값 - 최소값)/(최대값-최소값)
+normalize <- function(x) {
+  return((x - min(x)) / (max(x)-min(x)))
+}
+SW$nrmlM <- normalize(SW$Sepal.Width)
+SW[sort(sample(1:nrow(SW), 10)),]
+```
+
+
+```{r}
+# scale() 사용
+SW$nrmlA <- scale(SW$Sepal.Width, center = SW.min, scale = SW.max - SW.min)
+SW[sort(sample(1:nrow(SW), 10)),]
+```
+
+
+---
+EOD
