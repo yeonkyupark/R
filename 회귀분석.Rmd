@@ -1,5 +1,5 @@
 ---
-title: "상관분석"
+title: "회귀분석"
 output: github_document
 ---
 
