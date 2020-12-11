@@ -1,0 +1,86 @@
+---
+title: "상관분석"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,	message = FALSE,	warning = FALSE, options(width = 120), fig.width = 12, fig.height = 8
+)
+```
+
+# Prerequisite
+```{r}
+rm(list=ls())
+# getwd()
+# setwd("./R") # if necessary
+
+viewSamples <- function(x,n) {
+  x[sort(sample(1:nrow(x), n)),]
+}
+```
+
+# 회귀분석
+`회귀분석`이란 하나 혹은 그 이상의 원인(독립변수)이 결과(종속변수)에 미치는 영향을 추정하여 식으로 표현할 수 있는 통계기법이다.
+
+[ **선형회귀분석의 가정** ]
+
+* 독립변수와 종속변수 간의 선형성
+* 오차의 등분산성
+* 오차의 독립성
+* 오차의 정규성
+
+## 단순선형회귀분석
+[ **회귀분석 시 검토사항** ]
+
+* 모형 내의 회귀계수는 유의한가?
+* 모형은 데이터를 얼마나 설명할 수 있는가?
+* 회귀모형은 통계적으로 유의한가?
+* 모형이 데이터를 잘 적합하고 있는가?
+
+```{r}
+data(women)
+women.lm <- lm(height ~ weight, women)
+summary(women.lm)
+```
+```{r}
+par(mfrow = c(2,2))
+plot(women.lm)
+```
+
+```{r}
+idx <- sample(1:nrow(women), nrow(women)*0.7, replace = T)
+women.pred <- predict.lm(women.lm, women[-idx, ], interval = "none")
+rbind(women.pred, women[-idx,c("height")])
+```
+
+## 다중선형회귀분석
+```{r}
+data(iris)
+iris.lm <- lm(Sepal.Length ~ ., iris)
+summary(iris.lm)
+```
+범주형 데이터인 경우 더미변수화가 수행된 것을 확인할 수 있다.
+
+```{r}
+iris.lm <- lm(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width, iris)
+summary(iris.lm)
+```
+```{r}
+# 변수 선택법
+library(MASS)
+Cars93.lm <- lm(Price ~ EngineSize + RPM  + Length + Width + Weight, Cars93)
+summary(Cars93.lm)
+```
+
+```{r}
+step(Cars93.lm, direction = "backward")
+```
+변수선택법 수행 전후 수식  
+
+* 전: formula = Price ~ EngineSize + RPM + Length + Width + Weight
+* 후: formula = Price ~ EngineSize + RPM + Width + Weight
+
+----
+
+EOD
