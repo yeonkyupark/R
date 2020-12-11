@@ -1,0 +1,119 @@
+---
+title: "분류분석 - 로지스틱 회귀분석"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,	message = FALSE,	warning = FALSE, options(width = 120), fig.width = 12, fig.height = 8
+)
+```
+
+# Prerequisite
+```{r}
+rm(list=ls())
+# getwd()
+# setwd("./R") # if necessary
+
+viewSamples <- function(x,n=5) {
+  x[sort(sample(1:nrow(x), n)),]
+}
+```
+
+# 로지스틱 회귀분석
+`로지스틱 회귀분석`이란 반응변수가 범주형인 경우에 적용되는 회귀분석 모형이다.
+
+## 단항 로지스틱 회귀분석
+
+```{r}
+library(MASS)
+data(VA)
+
+str(VA)
+```
+```{r}
+summary(VA)
+```
+```{r}
+colSums(is.na(VA))
+```
+```{r}
+viewSamples(VA)
+```
+
+
+```{r}
+idx <- sample(1:nrow(snails), nrow(snails)*0.7, replace = F)
+snails.train <- snails[idx,]
+snails.test <- snails[-idx,]
+snails.glm <- glm(Species ~ ., snails.train, family = "binomial")
+summary(snails.glm)
+```
+```{r}
+# 변수 선택법 적용
+step(snails.glm, method = "backward")
+```
+
+```{r}
+# 변수 선택법 적용
+snails.glm <- glm(formula = Species ~ Exposure + Deaths, family = "binomial", data = snails.train)
+summary(snails.glm)
+```
+```{r}
+snails.pred <- predict(snails.glm, snails.test, type = "response")
+snails.pred <- ifelse(round(snails.pred) == 1, "A", "B")
+mean(snails.pred == snails.test$Species)
+```
+
+```{r}
+library(caret)
+cM <- confusionMatrix(as.factor(snails.pred), as.factor(snails.test$Species))
+cM
+```
+
+```{r}
+cM$byClass[c("Balanced Accuracy", "F1")]
+```
+```{r}
+library(ROCR)
+snails.roc <- prediction(as.numeric(as.factor(snails.pred)), as.numeric(as.factor(snails.test$Species)))
+plot(performance(snails.roc, "tpr", "fpr"), col="blue")
+text(0.9, 0.1, paste("AUC: ", round(as.numeric(performance(snails.roc, "auc")@y.values),3)), col="blue", cex = 1.25)
+```
+
+## 다항 로지스틱 회귀분석
+```{r}
+data(iris)
+idx <- sample(1:nrow(iris), nrow(iris)*.6, replace = F)
+iris.train <- iris[idx,]
+iris.test <- iris[-idx,]
+```
+
+```{r}
+library(nnet)
+iris.mlm <- multinom(Species ~ ., iris.train)
+summary(iris.mlm)
+```
+
+```{r}
+iris.pred <- predict(iris.mlm, iris.test[,-5])
+confusionMatrix(iris.pred, iris.test[,5])
+```
+```{r}
+library(pROC)
+iris.roc <- multiclass.roc(as.numeric(iris.pred), as.numeric(iris.test[,5]))
+# par(mfrow = c(1,3))
+# plot.roc(iris.roc$rocs[[1]], col = "red", print.auc = T, max.auc.polygon=TRUE, auc.polygon=TRUE)
+# plot.roc(iris.roc$rocs[[2]], col = "green", print.auc = T, max.auc.polygon=TRUE, auc.polygon=TRUE)
+# plot.roc(iris.roc$rocs[[3]], col = "blue", print.auc = T, max.auc.polygon=TRUE, auc.polygon=TRUE)
+plot.roc(iris.roc$rocs[[1]], col = "red", print.auc = T, print.auc.adj=c(0.5, 0.5), max.auc.polygon=TRUE, auc.polygon=TRUE)
+lines.roc(iris.roc$rocs[[2]], col="green")
+text(0.5, 0.4, paste("AUC: ", round(auc(iris.roc$rocs[[2]]),3)), col = "green" )
+lines.roc(iris.roc$rocs[[3]], col="blue")
+text(0.5, 0.3, paste("AUC: ", round(auc(iris.roc$rocs[[3]]),3)), col = "blue" )
+text(0.5, 0.2, paste("Ave.AUC: ", round(iris.roc$auc,3)), col = "black" )
+```
+
+----
+
+EOD
