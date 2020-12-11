@@ -1,0 +1,76 @@
+---
+title: "상관분석"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,	message = FALSE,	warning = FALSE, options(width = 120), fig.width = 12, fig.height = 8
+)
+```
+
+# Prerequisite
+```{r}
+rm(list=ls())
+# getwd()
+# setwd("./R") # if necessary
+
+viewSamples <- function(x,n) {
+  x[sort(sample(1:nrow(x), n)),]
+}
+```
+
+# 상관분석
+`상관분석`이란 두 변수간 관계의 정도를 알아보기 위한 분석방법이다.
+
+$$r=\frac{cov(x,y)}{S_x * S_y}$$
+
+```{r}
+data(iris)
+
+iris.cor <- cor(iris[,-5], use = "pairwise.complete.obs", method = "pearson")
+iris.cor
+```
+
+```{r}
+cor(iris[,-5], use = "pairwise.complete.obs", method = "spearman")
+```
+```{r}
+cor(iris[,-5], use = "pairwise.complete.obs", method = "kendall")
+```
+```{r}
+pairs(iris[,-5], col = iris$Species)
+```
+
+
+```{r}
+pairs(iris.cor)
+```
+```{r}
+# 꽃받침의 길이과 넓이의 상관관계
+cor.test(iris$Sepal.Length, iris$Sepal.Width, method = "pearson")
+```
+p-value = 0.1519로 유의수준 0.05 이하에서 귀무가설을 채택한다. 따라서 상관계수는 0으로 꽃받침의 폭과 넓이는 관계가 없다고 판단할 수 있다.
+
+```{r}
+plot(iris$Sepal.Length, iris$Sepal.Width)
+lines(lowess(iris$Sepal.Length, iris$Sepal.Width), col="blue")
+```
+
+
+```{r}
+# 꽃받침의 길이과 꽃잎의 길이 상관관계
+cor.test(iris$Sepal.Length, iris$Petal.Length, method = "pearson")
+```
+p-value < 2.2e-16로 유의수준 0.05 이하에서 귀무가설을 기각한다. 따라서 꽃받침의 길이와 꽃잎의 길이는 상관관계가 있다고 판단할 수 있다. 계산된 상관계수는 0.8717538로  강한 양의 상관관계가 있다고 해석할 수 있다.
+
+```{r}
+plot(iris$Sepal.Length, iris$Petal.Length)
+lines(lowess(iris$Sepal.Length, iris$Petal.Length), col="blue")
+```
+
+
+
+----
+
+EOD
