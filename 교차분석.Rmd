@@ -1,0 +1,48 @@
+---
+title: "교차분석"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,	message = FALSE,	warning = FALSE, options(width = 120)
+)
+```
+
+# Prerequisite
+```{r}
+rm(list=ls())
+# getwd()
+# setwd("./R") # if necessary
+
+viewSamples <- function(x,n) {
+  x[sort(sample(1:nrow(x), n)),]
+}
+```
+
+# 교차분석
+`교차분석`이란 명목척도 혹은 순서척도와 같은 범주형 자료들 간의 연관성을 알아볼 때 사용하는 방법이다.
+
+## 적합성 검정
+실험에서 얻어진 관측값들이 옛항한 이론과 일치하는지 아닌지를 검정하는 방법이다.
+
+```{r}
+data("survey", package = "MASS")
+data <- table(survey$W.Hnd)
+chisq.test(data, p=c(.2, .8))
+```
+p-value = 2.015e-06 값이 유의수준 0.05보다 작으므로 귀무가설을 기각한다. 따라서 외손잡이가 20%, 오른손잡이가 80% 비율이라고 볼 수 없다.
+
+## 독립성 검정
+```{r}
+chisq.test(table(survey$W.Hnd, survey$Exer))
+```
+p-value = 0.547 값이 유의수준 0.05보다 크기 때문에 귀무가설을 채택한다. 따라서 주로 사용하는 손과 운동 빈도는 서로 독립이다.
+
+## 동질성 검검
+
+
+
+----
+
+EOD

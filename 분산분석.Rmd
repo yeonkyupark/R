@@ -1,0 +1,62 @@
+---
+title: "교차분석"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,	message = FALSE,	warning = FALSE, options(width = 120), fig.width = 12, fig.height = 8
+)
+```
+
+# Prerequisite
+```{r}
+rm(list=ls())
+# getwd()
+# setwd("./R") # if necessary
+
+viewSamples <- function(x,n) {
+  x[sort(sample(1:nrow(x), n)),]
+}
+```
+
+# 분산분석
+`분산분석`은 두 개 이상의 다수 집단 간 평균을 비교하는 통계분석 방법이다.
+
+## 일원배치 분산분석 (One-way ANOVA)
+```{r}
+# iris 종별 꽃받침 넓이 평균에 차이가 있는지
+iris.aov <- aov(Sepal.Width ~ Species, data = iris)
+summary(iris.aov)
+```
+Pr(>F)<2e-16으로 유의수준 0.05 하에서 귀무가설을 기각한다. 따라서 종 중 어느 하나 이상은 평균이 동일하지 않다고 판단할 수 있다.
+
+```{r}
+# 사후검정
+TukeyHSD(iris.aov)
+```
+p adj 값이 모두 유의수준 0.05 이하이며, versicolor-setosa 간의 평균차가 가장 크다.  
+
+## 이원배치 분산분석 (Two-way ANOVA)
+```{r}
+# 변속기 종류와 실린더 개수에 따른 주행거리 평균 차
+data("mtcars")
+mtcars$cyl <- as.factor(mtcars$cyl)
+mtcars$am <- as.factor(mtcars$am)
+mtcars.aov <- aov(mpg ~ cyl*am, mtcars)
+summary(mtcars.aov)
+```
+유의수준 0.05 이하에서 cyl는 귀무가설을 기각하고, am은 귀무가설을 채택한다.
+따라서 실린더 개수에 다라 주행거리 간 통계적으로 유의미한 차이가 있고, 변속기에 따라 주행거리간 통계적 유의한 차이는 없다고 판단할 수 있다. 그리고 실린더와 변속기의 교호작용은 Pr(>F) 0.2686으로 귀무가설(교호작용이 없다)을 채택한다. 
+
+```{r}
+# 교호작용 여부를 그래프로 확인
+interaction.plot(mtcars$cyl, mtcars$am, mtcars$mpg, col = c("red", "blue"))
+```
+
+
+
+
+----
+
+EOD
