@@ -1,0 +1,81 @@
+---
+title: "연관분석"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,	message = FALSE,	warning = FALSE, options(width = 120), fig.width = 12, fig.height = 8
+)
+```
+
+# Prerequisite
+```{r}
+rm(list=ls())
+# getwd()
+# setwd("./R") # if necessary
+
+viewSamples <- function(x,n=5) {
+  x[sort(sample(1:nrow(x), n)),]
+}
+```
+
+
+# 연관분석 (Association analysis)
+`연관분석`은 기업의 데이터베이스에서 상품의 구매, 서비스 등 일련의 거래 또는 사건들 간의 규칙을 발견하여 IF-THEN의 구조로 분석 결과의 연관성을 파악하는 데이터마이닝 방법론이다.
+
+```{r}
+#install.packages("arules")
+library(arules)
+data("Groceries")
+Groceries
+```
+```{r}
+inspect(Groceries[1:3])
+```
+
+```{r}
+rules <- apriori(Groceries,
+                 parameter = list(support=0.01,
+                                  confidence = 0.3))
+```
+```{r}
+inspect(sort(rules, by=c("confidence"), decreasing = T)[1:5])
+```
+
+```{r}
+# 중복 제거 함수
+prune.dup.rules <- function(rules){
+  rule.subset.matrix <- is.subset(rules, rules, sparse = F)
+  rule.subset.matrix[lower.tri(rule.subset.matrix, diag = T)] <- NA
+  dup.rules <- colSums(rule.subset.matrix, na.rm=T) >= 1
+  pruned.rules <- rules[!dup.rules]
+  return(pruned.rules)
+}
+```
+
+
+```{r}
+# 우변의 아이템 기준으로 규칙 찾기
+metrix.params <- list(supp=0.001, conf = 0.5, minlen = 2)
+rules <- apriori(data=Groceries, parameter = metrix.params,
+                 appearance = list(default = "lhs", rhs="soda"),
+                 control = list(verbose=F))
+rules <- prune.dup.rules(rules)
+rules <- sort(rules, decreasing = T, by="confidence")
+inspect(rules[1:5])
+```
+
+```{r}
+# 좌변의 아이템 기준으로 규칙 찾기
+metrix.params <- list(supp=0.001, conf = 0.3, minlen = 2)
+rules <- apriori(data=Groceries, parameter = metrix.params,
+                 appearance = list(default = "rhs", lhs=c("yogurt", "sugar")),
+                 control = list(verbose=F))
+rules <- prune.dup.rules(rules)
+rules <- sort(rules, decreasing = T, by="confidence")
+inspect(rules[1:5])
+```
+
+----
+EOD
