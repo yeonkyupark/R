@@ -1,0 +1,66 @@
+---
+title: "분류분석 - 나이브 베이즈 분류류"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,	message = FALSE,	warning = FALSE, options(width = 120), fig.width = 12, fig.height = 8
+)
+```
+
+# Prerequisite
+```{r}
+rm(list=ls())
+# getwd()
+# setwd("./R") # if necessary
+
+viewSamples <- function(x,n=5) {
+  x[sort(sample(1:nrow(x), n)),]
+}
+```
+
+
+# 나이브 베이즈 분류 (Naive Bayes Classification)
+`나이브 베이즈 분류`는 데이터에서 변수들에 대한 조건부 독립을 가정하는 알고리즘으로 클래스에 대한 사전 정보와 데이터로부터 추출된 정보를 결합하고 베이즈 정리를 이용하여 어떤 데이터가 특정 클래스에 속하는지를 분류하는 알고리즘이다.
+
+```{r}
+titanic <- read.csv("titanic.csv")
+
+titanic$Age <- ifelse(is.na(titanic$Age), mean(titanic$Age, na.rm = T), titanic$Age)
+
+titanic$Survived <- as.factor(titanic$Survived)
+titanic$Sex <- as.factor(titanic$Sex)
+titanic <- titanic[, -c(1,4,9,11,12)]
+
+idx <- sample(1:nrow(titanic), nrow(titanic)*.7, replace = F)
+titanic.train <- titanic[idx,]
+titanic.test <- titanic[-idx,]
+```
+
+```{r}
+library(e1071)
+
+# 모델링
+titanic.nb <- naiveBayes(Survived ~., data = titanic.train, laplace = 0)
+titanic.nb
+```
+
+```{r}
+titanic.nb.pred <- predict(titanic.nb, titanic.test, type = "class")
+
+library(caret)
+confusionMatrix(titanic.nb.pred, titanic.test[,1])
+```
+
+```{r}
+library(ROCR)
+titanic.nb.roc <- prediction(as.numeric(titanic.nb.pred), as.numeric(titanic.test[,1]))
+plot(performance(titanic.nb.roc, "tpr", "fpr"), col="blue")
+abline(a=0, b=1, lty=2, col="blue")
+text(0.85, 0.1, paste("AUC:", round(as.numeric(performance(titanic.nb.roc, "auc")@y.values),3)), col="blue", cex = 1.2)
+```
+
+----
+
+EOD
