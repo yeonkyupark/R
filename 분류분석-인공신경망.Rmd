@@ -1,0 +1,77 @@
+---
+title: "분류분석 - 인공신경망"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,	message = FALSE,	warning = FALSE, options(width = 120), fig.width = 12, fig.height = 8
+)
+```
+
+# Prerequisite
+```{r}
+rm(list=ls())
+# getwd()
+# setwd("./R") # if necessary
+
+viewSamples <- function(x,n=5) {
+  x[sort(sample(1:nrow(x), n)),]
+}
+```
+
+
+# 인공신경망 모형(Artificial Neural Network)
+`인공신경망`은 동물의 뇌신경계를 모방하여 분류 또는 예측하기 위해 만들어진 모형이다.
+
+```{r}
+titanic <- read.csv("titanic.csv")
+
+titanic$Age <- ifelse(is.na(titanic$Age), mean(titanic$Age, na.rm = T), titanic$Age)
+
+titanic$Survived <- as.factor(titanic$Survived)
+titanic$Sex <- as.factor(titanic$Sex)
+titanic <- titanic[, -c(1,4,9,11,12)]
+
+idx <- sample(1:nrow(titanic), nrow(titanic)*.7, replace = F)
+titanic.train <- titanic[idx,]
+titanic.test <- titanic[-idx,]
+```
+
+```{r}
+library(nnet)
+
+# 모델링
+titanic.nn <- nnet(Survived~., titanic.train, size=2, maxit=200, decay=0.0005)
+summary(titanic.nn)
+```
+
+```{r}
+library(devtools)
+source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a505ff044412703516c34f1a4684a5/nnet_plot_update.r')
+plot.nnet(titanic.nn)
+```
+
+
+```{r}
+#install.packages("NeuralNetTools")
+library(NeuralNetTools)
+X11()
+garson(titanic.nn)
+```
+```{r}
+library(caret)
+titanic.pred <- predict(titanic.nn, titanic.test, type = "class")
+confusionMatrix(as.factor(titanic.pred), titanic.test$Survived)
+```
+```{r}
+library(ROCR)
+titanic.nn.roc <- prediction(as.numeric(as.factor(titanic.pred)), as.numeric(titanic.test$Survived))
+plot(performance(titanic.nn.roc, "tpr", "fpr"), col="blue")
+abline(a=0, b=1, lty=2, col="blue")
+text(0.85, 0.1, paste("AUC:", round(as.numeric(performance(titanic.nn.roc, "auc")@y.values),3)), col="blue", cex = 1.2)
+```
+
+----
+
+EOD
