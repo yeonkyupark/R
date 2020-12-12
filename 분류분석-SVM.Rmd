@@ -1,0 +1,73 @@
+---
+title: "분류분석 - SVM"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,	message = FALSE,	warning = FALSE, options(width = 120), fig.width = 12, fig.height = 8
+)
+```
+
+# Prerequisite
+```{r}
+rm(list=ls())
+# getwd()
+# setwd("./R") # if necessary
+
+viewSamples <- function(x,n=5) {
+  x[sort(sample(1:nrow(x), n)),]
+}
+```
+
+
+# 서포트 벡터 머신 (SVM)
+`SVM`은 기계학습 분야 중 하나로 패턴인식, 자료분석 등을 위한 지도학습 모델이며 주로 회귀와 분류 문제 해결에 사용한다.
+
+```{r}
+titanic <- read.csv("titanic.csv")
+
+titanic$Age <- ifelse(is.na(titanic$Age), mean(titanic$Age, na.rm = T), titanic$Age)
+
+titanic$Survived <- as.factor(titanic$Survived)
+titanic$Sex <- as.factor(titanic$Sex)
+titanic <- titanic[, -c(1,4,9,11,12)]
+
+idx <- sample(1:nrow(titanic), nrow(titanic)*.7, replace = F)
+titanic.train <- titanic[idx,]
+titanic.test <- titanic[-idx,]
+```
+
+```{r}
+#install.packages("e1071")
+library(e1071)
+
+# 최적 파라미터값 찾기
+titanic.tune <- tune.svm(Survived ~ ., data=titanic, gamma = 10^(-6:-1), cost = 10^(1:2))
+
+# 모델링
+titanic.svm <- svm(Survived ~., data = titanic.train, kernel = "radial",
+                   gamma = titanic.tune$best.parameters$gamma,
+                   cost = titanic.tune$best.parameters$cost)
+
+summary(titanic.svm)
+```
+
+```{r}
+titanic.svm.pred <- predict(titanic.svm, titanic.test, type = "class")
+
+library(caret)
+confusionMatrix(titanic.svm.pred, titanic.test[,1])
+```
+
+```{r}
+library(ROCR)
+titanic.svm.roc <- prediction(as.numeric(titanic.svm.pred), as.numeric(titanic.test[,1]))
+plot(performance(titanic.svm.roc, "tpr", "fpr"), col="blue")
+abline(a=0, b=1, lty=2, col="blue")
+text(0.85, 0.1, paste("AUC:", round(as.numeric(performance(titanic.svm.roc, "auc")@y.values),3)), col="blue", cex = 1.2)
+```
+
+----
+
+EOD
