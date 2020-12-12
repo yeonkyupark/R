@@ -1,0 +1,135 @@
+---
+title: "분류분석 - 앙상블(Ensemble)"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,	message = FALSE,	warning = FALSE, options(width = 120), fig.width = 12, fig.height = 8
+)
+```
+
+# Prerequisite
+```{r}
+rm(list=ls())
+# getwd()
+# setwd("./R") # if necessary
+
+viewSamples <- function(x,n=5) {
+  x[sort(sample(1:nrow(x), n)),]
+}
+```
+
+
+# 앙상블(Ensemble)
+`앙상블 기법`은 주어진 자료로부터 여러 개의 예측 모형들을 만든 후 예측모형들을 조합하여 하나의 최종 예측모형을 만드는 방법이다.
+
+[ 사용할 데이터: titanic]
+```{r}
+titanic <- read.csv("titanic.csv")
+```
+
+
+```{r}
+str(titanic)
+```
+
+```{r}
+summary(titanic)
+```
+
+```{r}
+viewSamples(titanic)
+```
+
+```{r}
+colSums(is.na(titanic))
+```
+
+```{r}
+titanic$Age <- ifelse(is.na(titanic$Age), mean(titanic$Age, na.rm = T), titanic$Age)
+colSums(is.na(titanic))
+```
+
+```{r}
+titanic$Survived <- as.factor(titanic$Survived)
+titanic$Sex <- as.factor(titanic$Sex)
+titanic <- titanic[, -c(1,4,9,11,12)]
+str(titanic)
+```
+
+```{r}
+idx <- sample(1:nrow(titanic), nrow(titanic)*.7, replace = F)
+titanic.train <- titanic[idx,]
+titanic.test <- titanic[-idx,]
+```
+
+## 배깅(Bagging)
+
+
+```{r}
+#install.packages("adabag")
+library(adabag)
+titanic.bg <- bagging(Survived ~ ., titanic.train, mfinal=10)
+names(titanic.bg)
+```
+
+```{r}
+barplot(sort(titanic.bg$importance, decreasing = T))
+```
+```{r}
+titanic.bg.pred <- predict(titanic.bg, titanic.test, type = "class")
+titanic.bg.pred$class <- as.factor(titanic.bg.pred$class)
+library(caret)
+confusionMatrix(titanic.bg.pred$class, titanic.test[,1])
+```
+```{r}
+library(ROCR)
+titanic.bg.roc <- prediction(as.integer(titanic.bg.pred$class), as.integer(titanic.test[,1]))
+plot(performance(titanic.bg.roc, "tpr", "fpr"), col="blue")
+abline(a=0, b=1, lty=2, col="blue")
+text(0.85, 0.1, paste("AUC:", round(as.numeric(performance(titanic.bg.roc, "auc")@y.values),3)), col="blue", cex = 1.2)
+```
+
+## 부스팅(Boosting)
+```{r}
+titanic.bt <- boosting(Survived ~ ., titanic.train, boos = T, mfinal=10)
+titanic.bt.pred <- predict(titanic.bt, titanic.test, type = "class")
+titanic.bt.pred$class <- as.factor(titanic.bt.pred$class)
+
+confusionMatrix(titanic.bt.pred$class, titanic.test[,1])
+```
+
+```{r}
+titanic.bt.roc <- prediction(as.integer(titanic.bt.pred$class), as.integer(titanic.test[,1]))
+plot(performance(titanic.bt.roc, "tpr", "fpr"), col="blue")
+abline(a=0, b=1, lty=2, col="blue")
+text(0.85, 0.1, paste("AUC:", round(as.numeric(performance(titanic.bt.roc, "auc")@y.values),3)), col="blue", cex = 1.2)
+```
+
+## 랜덤포레스트(Random Forest)
+```{r}
+#install.packages("randomForest")
+library(randomForest)
+
+titanic.rf <- randomForest(Survived ~ ., titanic.train, ntree=10, mtry=sqrt(20), importance = T)
+titanic.rf.pred <- predict(titanic.rf, titanic.test, type = "class")
+titanic.rf.pred <- as.factor(titanic.rf.pred)
+confusionMatrix(titanic.rf.pred, titanic.test[,1])
+```
+
+```{r}
+varImpPlot(titanic.rf)
+```
+
+```{r}
+titanic.rf.roc <- prediction(as.numeric(titanic.rf.pred), as.integer(titanic.test[,1]))
+plot(performance(titanic.rf.roc, "tpr", "fpr"), col="blue")
+abline(a=0, b=1, lty=2, col="blue")
+text(0.85, 0.1, paste("AUC:", round(as.numeric(performance(titanic.rf.roc, "auc")@y.values),3)), col="blue", cex = 1.2)
+```
+
+
+----
+
+EOD
