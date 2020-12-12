@@ -1,0 +1,114 @@
+---
+title: "군집분석"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,	message = FALSE,	warning = FALSE, options(width = 120), fig.width = 12, fig.height = 8
+)
+```
+
+# Prerequisite
+```{r}
+rm(list=ls())
+# getwd()
+# setwd("./R") # if necessary
+
+viewSamples <- function(x,n=5) {
+  x[sort(sample(1:nrow(x), n)),]
+}
+```
+
+
+# 군집분석 (Cluster analysis)
+`군집분석`은 각 개체의 유사성을 측정하여 유사성이 높은 대상 집단을 분류하고 군집에 속한 객체들의 유사성과 서로 다른 군집에 속한 개체간의 상이성을 규명하는 다변량 분석 기법이다.
+
+## 계층적 군집분석
+```{r}
+US <- USArrests
+US.dist <- dist(US, "euclidean")
+US.dist
+```
+```{r}
+US.single <- hclust(US.dist^2, method = "single")
+plot(US.single)
+```
+
+```{r}
+US.complete <- hclust(US.dist^2, method = "complete")
+plot(US.complete)
+```
+```{r}
+US.average <- hclust(US.dist^2, method = "average")
+plot(US.average)
+```
+```{r}
+group <- cutree(US.average, k =6)
+group
+```
+
+```{r}
+plot(US.average)
+rect.hclust(US.average, k=7, border="red")
+```
+
+```{r}
+#install.packages("NbClust")
+library(NbClust)
+nc <- NbClust(US, min.nc = 2, max.nc = 15, method = "kmeans")
+```
+```{r}
+group <- cutree(US.average, k =2)
+plot(US.average)
+rect.hclust(US.average, k=2, border="red")
+```
+
+
+## 비계층적 군집분석
+```{r}
+titanic <- read.csv("titanic.csv")
+titanic$Age <- ifelse(is.na(titanic$Age), mean(titanic$Age, na.rm = T), titanic$Age)
+titanic$Survived <- as.factor(titanic$Survived)
+titanic$Sex <- as.factor(titanic$Sex)
+titanic <- titanic[, -c(1,4,9,11,12)]
+str(titanic)
+idx <- sample(1:nrow(titanic), nrow(titanic)*.7, replace = F)
+titanic.train <- titanic[idx,]
+titanic.test <- titanic[-idx,]
+```
+
+```{r}
+kdata <- titanic.train[,-1]
+kdata$Sex <- as.numeric(kdata$Sex)
+titanic.kmeans <- kmeans(kdata, centers = 2)
+titanic.kmeans
+```
+```{r}
+titanic.kmeans.table <- table(titanic.train$Survived, titanic.kmeans$cluster)
+titanic.kmeans.table
+```
+```{r}
+(titanic.kmeans.table[1,1]+titanic.kmeans.table[2,2])/sum(titanic.kmeans.table)
+```
+```{r}
+nc <- NbClust(kdata, min.nc = 2, max.nc = 15, method = "kmeans")
+```
+
+## 혼합 분포 군집
+```{r}
+#install.packages("mclust")
+library(mclust)
+mc <- Mclust(iris[1:4], G=3)
+summary(mc, parameters = T)
+```
+```{r}
+plot.Mclust(mc)
+```
+
+```{r}
+mc$classification
+```
+
+----
+EOD
